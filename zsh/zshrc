@@ -1,0 +1,263 @@
+##
+## IMPORTS
+##
+
+# Enable syntax highlighting
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# Import dircolors options for ls highlighting
+eval $(/usr/bin/dircolors)
+
+# Enable command not found search
+# Currently disabled because it's really slow
+#source /usr/share/doc/pkgfile/command-not-found.zsh
+
+##
+## PROMPT CUSTOMIZATION
+##
+
+# Right prompt: error code iff last command exited with error
+RPROMPT='%(?..%F{red}        [%?])%f'
+
+# Left prompt: $USER@$HOST ~/path/to/dir❯
+PROMPT='%B%F{magenta}%n%f@%b%f%F{magenta}%m%f %F{green}%~%b%f%F{magenta}%(!.#.❯) %f'
+
+# Backup left prompt without fancy Unicode; applies to kernel provided terminals
+if [[ $TERM == "linux" ]]; then
+    PROMPT='%B%F{magenta}%n%f@%b%f%F{magenta}%m%f %F{green}%~%b%f%F{magenta}%(!.#.%%) %f';
+fi
+
+##
+## KEYBINDINGS
+##
+
+# Set 'emacs' keybindings; this is the default, but zsh overrides when EDITOR=vim
+bindkey -e
+
+# Add obvious "text editor" style keybinds
+bindkey '^[[3~' delete-char
+bindkey '5~' kill-word
+bindkey '^H' backward-kill-word
+bindkey '^[[1;5C' forward-word
+bindkey '[1;5D' backward-word
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+#bindkey '\E[2~' overwrite-mode
+
+# Convenient history search bindings
+bindkey '^R' history-beginning-search-backward
+bindkey '^N' history-beginning-search-forward
+
+##
+## ZSH built in options
+##
+
+# Don't add commands to history when they are prefixed with a space
+setopt HIST_IGNORE_SPACE
+
+# Only store most recent use of a command in the history
+setopt HIST_IGNORE_ALL_DUPS
+
+# Remove older dupes when the history file is resaved
+setopt HIST_SAVE_NO_DUPS
+
+# When command line contains additional blanks, don't save them to the history
+setopt HIST_REDUCE_BLANKS
+
+# Immediately append comands to history *and* wait until command completes to do so
+setopt INC_APPEND_HISTORY_TIME
+
+# Store the timestamp of each command and the duration it runs
+setopt EXTENDED_HISTORY
+
+# Allow zsh to autocomplete aliases
+setopt COMPLETE_ALIASES
+
+# Print exit data when background jobs finish immediately, instead of waiting
+setopt NOTIFY
+
+# When invalid command is entered, try `cd` to it as a directory instead
+setopt AUTOCD
+
+##
+## ZSH
+##
+
+# History settings
+HISTFILE=~/.local/zsh/zsh_histfile
+HISTSIZE=100000
+SAVEHIST=100000
+
+# Set sane wordchars (characters that will be considered "word characters" for delete / skip)
+#  -> default - slash + backslash
+WORDCHARS="*?_-.[]~=&;!#$%^(){}<>\\"
+
+# Set characters to automatically remove when inadvertently added by autocomplete
+ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
+
+# Make autocomplete case-insensitive
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}'
+
+##
+## ENVIRONMENT VARIABLES
+##
+
+export EDITOR=vim
+
+# Go dumps cached compiles in the GOPATH; make this as easy to delete as possible
+export GOPATH=$HOME/.cache/go
+
+# Make Firefox use the user preferred file picker
+export GTK_USE_PORTAL=1
+
+# Make Firefox use Wayland when possible
+export MOZ_ENABLE_WAYLAND=1
+
+# Clean R installation: R places installed packages and compiles here
+export R_USER=$HOME/.local/share/R
+export R_LIBS_USER=$HOME/.local/share/R/library
+
+##
+## ALIASES
+##
+
+## Aliases - shortcuts for frequently used commands
+
+alias boottime='systemd-analyze'
+
+# Convenient date printer - Git log format
+alias gdate='date -u +"%Y-%m-%d %H:%M:%S %z"'
+
+# Start a gnome session directlyfrom a getty
+alias gnome-wayland='XDG_SESSION_TYPE=wayland dbus-run-session gnome-session'
+
+alias hx='helix'
+alias k='kak'
+alias log='sudo journalctl -u'
+alias movie='mpv --fs --pause --keep-open --no-sub --no-osc --osd-level=0'
+alias movie-stereo='movie --audio-channels=stereo'
+alias mpv-screenshot='mpv --no-config --no-sub --screenshot-format=png'
+alias nb='ninja -C build'
+alias open='xdg-open'
+
+# Don't cross file systems, use SI units
+alias usage='ncdu -x --si'
+
+# Convenient date printer - ISO format
+alias udate='date -u +"%Y-%m-%dT%H:%M:%S%Z"'
+
+# Just for fun - play a random song from YouTube's "Millenial Mixtape" playlist
+alias songyeet="yt-dlp 'RDCLAK5uy_mplKe9BIYCO3ZuNWSHZr48bm9DUDzbWnE' --flat-playlist --dump-single-json | jq -r '.[\"entries\"] | map(.url) | \"ytdl://\" + .[]' | shuf -n 1 | xargs mpv --no-video --term-playing-msg='\${media-title}'"
+
+## Aliases - default options
+
+alias dc='dc -e "9 k" -f "-"'
+alias grep='grep --color=auto'
+alias ls='ls -h --si --color=auto'
+alias make='make -j8'
+alias ctest='ctest -j8'
+alias streamlink='streamlink --twitch-low-latency --player mpv --player-args "--no-config --demuxer-max-bytes=1024KiB"'
+
+## Aliases - simple utilities
+
+alias backup='borg create -v --stats --progress $BACKUPSERVER/$HOST::{now:%Y-%m-%d} $HOME --exclude-from $HOME/.config/borg/exclude.txt'
+alias backup-prune='borg prune -v --list --dry-run --keep-within 3m -y 2 $BACKUPSERVER/$HOST'
+
+# More useful history commands; inefficient but shell histories aren't long enough to worry about
+alias hgrep='history | grep'
+alias history='fc -l 1'
+
+# Generate a random 24 character password
+alias password='openssl rand -base64 24'
+
+# Download files with curl using some nice default options; picks file name using server suggestion
+# Note: -C is a common addition, but we don't want that because curl *assumes* any existing file should be appended to
+alias get='curl -JORL --'
+
+# Make PNG smol
+alias pngsmol='ect --strict -9'
+
+# pacman search that doesn't return a thousand useless results
+alias pacsearch='$HOME/projects/pacman-search/pacsearch.py'
+
+# python-rpn - a reverse polish notation calculator in Python
+alias rpn='$HOME/projects/rpn-python/rpn.py'
+
+# Edit the ZSHRC file and reload it
+alias zshrc='vim ~/.config/zsh/zshrc && source ~/.config/zsh/zshrc'
+
+# Use KDEConnect to send a file to my phone
+alias send2phone='kdeconnect-cli -d d09708d1_0a0e_47c2_98c1_93abdeeb90ad --share'
+
+## Aliases - package management
+
+# remove all but last two backups of installed packages and all uninstalled packages.
+alias pacclean='paccache -rk2 && paccache -ruk0'
+
+##
+## FUNCTIONS
+##
+
+# With `de X` start an xsession with the xinitrc file given by `X`
+# Allows convenient use of multiple Xorg environments with different configs
+de() {client="$HOME/.xinitrc$1" /usr/bin/startx;}
+
+# High quality audio resampling with dithering to 16 bit depth
+resample() {sox -V -S $1 -G -b 16 $2 rate -v $3 dither -s}
+
+# Upload a file to server (making it publicly available)
+upload() {scp -i ~/.ssh/discovery-one.key $1 user@$MYDOMAIN:files/ && echo 'https://$MYDOMAIN/files/'$(basename $1);}
+
+# Quick and dirty ebook conversion to PDF for nice reading; relies on Calibre
+epub2pdf() {ebook-convert $1 $2 --pdf-serif-family 'Adobe Garamond Pro' --preserve-cover-aspect-ratio --enable-heuristics --keep-ligatures --paper-size a5 --pdf-page-margin-bottom 60 --pdf-page-margin-left 60 --pdf-page-margin-right 60 --pdf-page-margin-top 60 --base-font-size 10 --font-size-mapping 8,8,9,10,12,14,16,18 --embed-all-fonts --pdf-hyphenate --change-justification 'justify'}
+
+# Take specified pages from an input PDF and make an output PDF with only those pages
+excerpt() {
+    if [[ "$3" ]]; then
+        mutool clean -ggg -dzif -c "$1" "$2" "$3";
+    else
+        echo "excerpt input.pdf output.pdf <range>";
+    fi
+}
+
+# Much more useful file search; case insensitive, correct (?) option order, automatic sudo...
+f() {
+        if [[ ! -f "$2" ]] || [[ -r "$2" ]]; then
+                find "${2:-.}" -xdev -iname "*$1*" 2>/dev/null;
+        else
+                sudo find "${2:-.}" -xdev -iname "*$1*" 2>/dev/null;
+        fi
+}
+
+# Print only the unique lines in a file, using a hashmap
+unique() {
+    awk '!x[$0]++' "$@"
+}
+
+# Count the number of unique lines in a file
+countunique() {
+    awk '!x[$0]++ {i++} END {print i}' "$@"
+}
+
+# (Securely) checks whether a password exists in the HIBP database
+hibp () {
+    echo -n "$@" |
+        sha1sum |
+        tr "[:lower:]" "[:upper:]" |
+        sed 's/\(.\{5\}\)\(.\{35\}\).*/\1 \2/' |
+        xargs -n2 bash -c 'curl "https://api.pwnedpasswords.com/range/$0" 2>&1 | grep "$1"'
+}
+
+# Open man page for a non-installed Arch package
+archman () {
+    if [[ "$2" ]]; then
+        curl -sL "https://man.archlinux.org/man/$2.$1.txt" | less;
+    else
+        curl -sL "https://man.archlinux.org/man/$1.txt" | less;
+    fi
+}
+
+# Open the docs for an installed package using an appropriate viewer
+doc () {
+    pacman -Ql $(pacman -Qqo "$1") | grep -io '/usr/share/doc.*readme.*' | head -n1 | xargs xdg-open
+}

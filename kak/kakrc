@@ -1,0 +1,65 @@
+### Functions and Addons
+
+# functions implementing hard and soft line wrapping
+source "%val{config}/hardwrap.kak"
+
+# function to reformat the current (inner) object with `formatcmd`
+source "%val{config}/format-paragraph.kak"
+
+# functions equivalent to Vim's :expandtab
+source "%val{config}/smarttab.kak"
+
+# intelligent scrolling through paragraphs
+source "%val{config}/scroll-paragraph.kak"
+
+### Global Shortcuts
+
+
+### Global Settings and Highlighters
+
+add-highlighter global/ number-lines
+add-highlighter global/ show-matching
+
+# Feature unreleased as of 2024-03-01.
+# add-highlighter -only-trailing global/ show-whitespaces -lf ' ' -only-trailing
+
+# Substitute - regex highlighting of trailing whitespace
+add-highlighter global/trailing-whitespace regex '\h+$' 0:Error
+
+set-option global indentwidth 4
+set-option global tabstop 4
+# this always needs to be the same as tabstop
+hook global ModuleLoaded smarttab %{
+    set-option global softtabstop 4
+}
+
+# set command use to automatically wrap over-long lines
+# for contexts that use auto (hard) wrapping, `fmt` is a much better default than `fold`
+set-option global autowrap_fmtcmd 'fmt -w %c'
+
+# Default to expanding tabs into spaces; can disable with `noexpandtab`
+hook global WinCreate .* expandtab
+
+# softwrap at window by default
+hook global WinCreate .* softwrap
+
+
+### Options for Filetypes
+
+hook global WinSetOption filetype=python %{
+    softwrap 88
+}
+
+hook global WinSetOption filetype=mail %{
+    hardwrap 72
+}
+
+hook global WinSetOption filetype=markdown %{
+    # built-in feature to rewrap as we type
+    set-option window autowrap_fmtcmd 'pandoc -f markdown -t markdown --columns %c'
+    # enables `format` to reformat the whole buffer, and is also used by `format-paragraph`
+    set-option window formatcmd 'pandoc -f markdown -t markdown --columns 72'
+    # selects current paragraph and passes it to the formatter
+    map window normal <a-r> ': format-paragraph<ret>'
+    hardwrap 72
+}

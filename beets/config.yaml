@@ -1,0 +1,100 @@
+directory: /mnt/data/audio
+library: ~/.local/share/beets/music.blb
+
+pluginpath: ~/.local/share/beets/plugins
+
+plugins: convert copyartifacts fetchart inline permissions replaygain zero info mbsync
+
+import:
+    detail: yes
+    move: yes
+    timid: yes
+    searchlimit: 8
+
+copyartifacts:
+    extensions: .cue .log
+
+# zero credit tags since we tag artists using them; also remove useless / deprecated
+zero:
+    fields: albumartist_credit albumstatus artist_credit acoustid_id acoustid_fingerprint
+
+art_filename: folder
+per_disc_numbering: yes
+incremental: yes
+
+# tag artist with the "credit" tag
+artist_credit: yes
+
+paths:
+    albumtype:soundtrack: soundtracks/$authorcredit/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+    albumtype:single: singles/$albumartist/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+    albumgenre:soundtrack: soundtracks/$authorcredit/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+    albumgenre:classical: composers/$authorcredit/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+    albumgenre:instrumental: composers/$authorcredit/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+    albumgenre:experimental: experimental/$albumartist/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+    albumgenre:jazz: jazz/$albumartist/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+    comp: music/$albumartist/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+    default: music/$albumartist/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
+
+# mediatype and media are album keys, so grab them from tracks if unaminous
+aunique:
+    keys: albumartist album year
+    disambiguators: albummediatype albummedia label catalognum
+
+album_fields:
+    albummediatype: |
+        m_0 = items[0].get("mediatype")
+        if m_0 and all(m_0 == item.get("mediatype") for item in items[1:]):
+            return m_0
+        return ""
+    albummedia: |
+        m_0 = items[0].get("media")
+        if m_0 and all(m_0 == item.get("media") for item in items[1:]):
+            return m_0
+        return ""
+    albumgenre: |
+        try:
+            return classification
+        except NameError:
+            pass
+        try:
+            return genre.lower()
+        except NameError:
+            return ""
+    # an author credit for "composition" focused works - classical, soundtracks, etc
+    # try to grab track-unaminous composer, then artist (MusicBrainz tags composer as artist)
+    authorcredit: |
+        c_0 = items[0].get("composer")
+        if c_0 and all(c_0 == item.get("composer") for item in items[1:]):
+            return c_0
+        a_0 = items[0].get("artist")
+        if a_0 and all(a_0 == item.get("artist") for item in items[1:]):
+            return a_0
+        return albumartist
+
+item_fields:
+    multidisc: 1 if disctotal > 1 else 0
+
+path_sep_replace: '⧸'
+
+replace:
+    '\\': '⧸'
+    '^\.': ''
+    '[\x00-\x1f]': ''
+    '\.$': ''
+    '\s+$': ''
+
+convert:
+    format: opus
+    formats:
+        opus:
+            command: opusenc --bitrate 96 $source $dest
+            extension: opus
+    never_convert_lossy_files: yes
+    album_art_maxwidth: 1080
+    #    copy_album_art: yes
+    #    embed: no
+
+replaygain:
+    backend: ffmpeg
+    r128: ""

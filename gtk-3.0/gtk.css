@@ -1,0 +1,13 @@
+@import 'colors.css';
+
+/* kde settings should be 0 0 16px, alpha 0.1
+ * but kde calculates shadow opacity as 1/d^2 */
+window > decoration, dialog > decoration, popover {
+    border-radius: 5px 5px 0 0;
+    box-shadow: 0 0 4px rgba(99,99,99,0.15);
+}
+
+/* no header bar underline, to match KDE */
+headerbar {
+    border-bottom-width: 0px;
+}
