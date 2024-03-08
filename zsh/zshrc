@@ -222,11 +222,11 @@ excerpt() {
 
 # Much more useful file search; case insensitive, correct (?) option order, automatic sudo...
 f() {
-        if [[ ! -f "$2" ]] || [[ -r "$2" ]]; then
-                find "${2:-.}" -xdev -iname "*$1*" 2>/dev/null;
-        else
-                sudo find "${2:-.}" -xdev -iname "*$1*" 2>/dev/null;
-        fi
+    if [[ ! -f "$2" ]] || [[ -r "$2" ]]; then
+        find "${2:-.}" -xdev -iname "*$1*" 2>/dev/null;
+    else
+        sudo find "${2:-.}" -xdev -iname "*$1*" 2>/dev/null;
+    fi
 }
 
 # Print only the unique lines in a file, using a hashmap
