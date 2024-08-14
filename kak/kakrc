@@ -63,3 +63,7 @@ hook global WinSetOption filetype=markdown %{
     map window normal <a-r> ': format-paragraph<ret>'
     hardwrap 72
 }
+
+hook global BufSetOption filetype=python %{
+    set-option buffer formatcmd 'ruff format -'
+}
