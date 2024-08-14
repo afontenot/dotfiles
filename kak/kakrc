@@ -14,6 +14,8 @@ source "%val{config}/scroll-paragraph.kak"
 
 ### Global Shortcuts
 
+# toggle commenting selections with #
+map global normal '#' :comment-line<ret>
 
 ### Global Settings and Highlighters
 
