@@ -3,10 +3,14 @@
 ##
 
 # Enable syntax highlighting
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Import dircolors options for ls highlighting
 eval $(/usr/bin/dircolors)
+
+# Enable autocompletions
+autoload -U compinit
+compinit
 
 # Enable command not found search
 # Currently disabled because it's really slow
