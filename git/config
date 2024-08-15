@@ -1,0 +1,19 @@
+[init]
+	defaultBranch = main
+[diff]
+	algorithm = histogram
+[merge]
+	conflictstyle = zdiff3
+[pull]
+	ff = only
+[user]
+	useConfigOnly = true
+[alias]
+	llog = "log --first-parent --oneline"
+	identify = "! git config user.name \"$(git config user.$1.name)\"; git config user.email \"$(git config user.$1.email)\"; git config user.signingkey \"$(git config user.$1.signingkey)\"; :"
+[user "adam"]
+	name = Adam Fontenot
+	email = adam.m.fontenot@gmail.com
+	signingkey = 35B56DCD810C01356F677BFF7C7E7684F08ABF6B
+[commit]
+	gpgsign = true
