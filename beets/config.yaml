@@ -5,6 +5,8 @@ pluginpath: ~/.local/share/beets/plugins
 
 plugins: convert copyartifacts fetchart inline permissions replaygain zero info mbsync
 
+medium_rec_thresh: -1.0
+
 import:
     detail: yes
     move: yes
@@ -86,15 +88,8 @@ replace:
 
 convert:
     format: opus
-    formats:
-        opus:
-            command: opusenc --bitrate 96 $source $dest
-            extension: opus
     never_convert_lossy_files: yes
     album_art_maxwidth: 1080
-    #    copy_album_art: yes
-    #    embed: no
 
 replaygain:
     backend: ffmpeg
-    r128: ""
