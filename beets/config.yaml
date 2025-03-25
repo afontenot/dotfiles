@@ -16,16 +16,17 @@ import:
 copyartifacts:
     extensions: .cue .log
 
-# zero credit tags since we tag artists using them; also remove useless / deprecated
+# remove useless / deprecated
 zero:
-    fields: albumartist_credit albumstatus artist_credit acoustid_id acoustid_fingerprint
+    fields: acoustid_id acoustid_fingerprint
+    update_database: true
 
 art_filename: folder
 per_disc_numbering: yes
 incremental: yes
 
-# tag artist with the "credit" tag
-artist_credit: yes
+# artist as credited on the release goes in _credit tag, canonical artist name goes in artist
+artist_credit: no
 
 paths:
     albumtype:soundtrack: soundtracks/$authorcredit/$album ($year)%aunique{}/%if{$multidisc,Disc $disc/}$track - $title
