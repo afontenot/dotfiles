@@ -48,6 +48,11 @@ hook global WinCreate .* softwrap
 
 ### Options for Filetypes
 
+eval %sh{kak-lsp --kakoune}  # Not needed if you load it with plug.kak.
+hook global WinSetOption filetype=(rust|python|go|javascript|typescript|c|cpp) %{
+    lsp-enable-window
+}
+
 hook global WinSetOption filetype=python %{
     softwrap 88
 }

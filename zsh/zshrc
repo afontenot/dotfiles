@@ -106,7 +106,7 @@ zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}'
 ## ENVIRONMENT VARIABLES
 ##
 
-export EDITOR=vim
+export EDITOR=kak
 
 # Go dumps cached compiles in the GOPATH; make this as easy to delete as possible
 export GOPATH=$HOME/.cache/go
@@ -119,7 +119,11 @@ export MOZ_ENABLE_WAYLAND=1
 
 # Clean R installation: R places installed packages and compiles here
 export R_USER=$HOME/.local/share/R
-export R_LIBS_USER=$HOME/.local/share/R/library
+export R_LIBS_USER="$R_USER/library"
+export R_PROFILE_USER="$R_USER/Rprofile"
+
+# Make games built on top of SDL for graphics use wayland directly
+export SDL_VIDEODRIVER=wayland
 
 ##
 ## ALIASES
@@ -128,13 +132,6 @@ export R_LIBS_USER=$HOME/.local/share/R/library
 ## Aliases - shortcuts for frequently used commands
 
 alias boottime='systemd-analyze'
-
-# Convenient date printer - Git log format
-alias gdate='date -u +"%Y-%m-%d %H:%M:%S %z"'
-
-# Start a gnome session directlyfrom a getty
-alias gnome-wayland='XDG_SESSION_TYPE=wayland dbus-run-session gnome-session'
-
 alias hx='helix'
 alias k='kak'
 alias log='sudo journalctl -u'
@@ -142,7 +139,15 @@ alias movie='mpv --fs --pause --keep-open --no-sub --no-osc --osd-level=0'
 alias movie-stereo='movie --audio-channels=stereo'
 alias mpv-screenshot='mpv --no-config --no-sub --screenshot-format=png'
 alias nb='ninja -C build'
-alias open='xdg-open'
+alias uvp='uv pip'
+alias uvv='uv venv'
+alias venv='source venv/bin/activate'
+
+# Convenient date printer - Git log format
+alias gdate='date -u +"%Y-%m-%d %H:%M:%S %z"'
+
+# Start a gnome session directlyfrom a getty
+alias gnome-wayland='XDG_SESSION_TYPE=wayland dbus-run-session gnome-session'
 
 # Don't cross file systems, use SI units
 alias usage='ncdu -x --si'
@@ -161,6 +166,7 @@ alias ls='ls -h --si --color=auto'
 alias make='make -j8'
 alias ctest='ctest -j8'
 alias streamlink='streamlink --twitch-low-latency --player mpv --player-args "--no-config --demuxer-max-bytes=1024KiB"'
+alias tldr='tldr -s "file://"'
 
 ## Aliases - simple utilities
 
@@ -184,14 +190,14 @@ alias pngsmol='ect --strict -9'
 # pacman search that doesn't return a thousand useless results
 alias pacsearch='$HOME/projects/pacman-search/pacsearch.py'
 
+# reformat inflight changes in Python projects
+alias pfc='~/projects/utilities/python-format-changes/pfc.py'
+
 # python-rpn - a reverse polish notation calculator in Python
 alias rpn='$HOME/projects/rpn-python/rpn.py'
 
 # Edit the ZSHRC file and reload it
 alias zshrc='vim ~/.config/zsh/zshrc && source ~/.config/zsh/zshrc'
-
-# Use KDEConnect to send a file to my phone
-alias send2phone='kdeconnect-cli -d d09708d1_0a0e_47c2_98c1_93abdeeb90ad --share'
 
 ## Aliases - package management
 
@@ -202,9 +208,16 @@ alias pacclean='paccache -rk2 && paccache -ruk0'
 ## FUNCTIONS
 ##
 
-# With `de X` start an xsession with the xinitrc file given by `X`
-# Allows convenient use of multiple Xorg environments with different configs
-de() {client="$HOME/.xinitrc$1" /usr/bin/startx;}
+# Open file with default handler
+open() {
+    if [[ -e "$1" ]]; then
+        xdg-open "$1";
+    elif [[ ! "$1" ]]; then
+        echo "usage: open <filename>"
+    else
+        echo "$1 does not exist"
+    fi
+}
 
 # High quality audio resampling with dithering to 16 bit depth
 resample() {sox -V -S $1 -G -b 16 $2 rate -v $3 dither -s}
@@ -214,6 +227,12 @@ upload() {scp -i ~/.ssh/discovery-one.key $1 user@$MYDOMAIN:files/ && echo 'http
 
 # Quick and dirty ebook conversion to PDF for nice reading; relies on Calibre
 epub2pdf() {ebook-convert $1 $2 --pdf-serif-family 'Adobe Garamond Pro' --preserve-cover-aspect-ratio --enable-heuristics --keep-ligatures --paper-size a5 --pdf-page-margin-bottom 60 --pdf-page-margin-left 60 --pdf-page-margin-right 60 --pdf-page-margin-top 60 --base-font-size 10 --font-size-mapping 8,8,9,10,12,14,16,18 --embed-all-fonts --pdf-hyphenate --change-justification 'justify'}
+
+# Copy basic EXIF data from one image to another
+# Also sets the time offset to GMT because exiftool seemingly can't translate Exif.CanonTi.TimeZone
+exifcopy() {
+    exiftool -OffsetTimeOriginal="+00:00" -tagsFromfile "$1" -DateTimeOriginal -FNumber -ISO -FocalLength -ISOSpeedRatings -LensModel -Make -Model -exposuretime -overwrite_original "$2"
+}
 
 # Take specified pages from an input PDF and make an output PDF with only those pages
 excerpt() {
@@ -264,4 +283,19 @@ archman () {
 # Open the docs for an installed package using an appropriate viewer
 doc () {
     pacman -Ql $(pacman -Qqo "$1") | grep -io '/usr/share/doc.*readme.*' | head -n1 | xargs xdg-open
+}
+
+# Use KDEConnect to send a file to my phone
+send2phone () {
+    while true; do
+        kdeconnect-cli -d d09708d1_0a0e_47c2_98c1_93abdeeb90ad --share "$1" && break
+        sleep 5
+    done
+}
+
+# Bump footnotes in a markdown file
+bumpfootnotes () {
+    mdfile="$1"
+    first="${2:=1}"
+    perl -i -lpe 's/(?<=\[\^)(\d+)(?=\])/$1+($1 >= '"$first"' ? 1 : 0)/eg' "$mdfile"
 }

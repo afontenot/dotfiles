@@ -1,7 +1,7 @@
 # functions for wrapping lines
 
 define-command hardwrap -params 1 %{
-    nowrap
+    try %{ nowrap }
     set-option window autowrap_column %arg{1}
     set-option window autowrap_format_paragraph true
     add-highlighter window/wrapline column %sh{printf $((${kak_opt_autowrap_column} + 1))} default,bright-black
@@ -9,7 +9,7 @@ define-command hardwrap -params 1 %{
 }
 
 define-command softwrap -params 0..1 %{
-    nowrap
+    try %{ nowrap }
     try %{
         set-option window autowrap_column %arg{1}
         add-highlighter window/wrapline column %sh{printf $((${kak_opt_autowrap_column} + 1))} default,bright-black

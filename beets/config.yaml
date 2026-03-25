@@ -1,6 +1,6 @@
 directory: /mnt/data/audio
-library: ~/.local/share/beets/music.blb
 
+library: ~/.config/beets/music.blb
 pluginpath: ~/.local/share/beets/plugins
 
 plugins: convert copyartifacts fetchart inline permissions replaygain zero info mbsync
